@@ -22,5 +22,13 @@ jobs:
     - name: Build the Docker image
       run: | 
         cd /opt/influxdb
-        docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+        docker build . --file Dockerfile --tag my-image-name:inview/influxdb
+        mkdir -p /opt/images
+        docker save -o /opt/images/influxdb.tar inview/influxdb
+    - name : Upload packages
+      uses: actions/upload-artifact@master
+      if: always()
+      with:
+        name: influxdb
+        path: /opt/images
        
