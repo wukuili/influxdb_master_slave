@@ -25,6 +25,8 @@ jobs:
         docker build . --file Dockerfile --tag inview/influxdb:v1
         mkdir -p /opt/images
         docker save -o /opt/images/influxdb.tar inview/influxdb
+        cd /opt/images
+        bzip2 -c influxdb.tar
     - name : Upload packages
       uses: actions/upload-artifact@master
       if: always()
