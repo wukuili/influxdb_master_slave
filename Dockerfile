@@ -1,8 +1,19 @@
-# 运行代码的容器图像
-FROM alpine:3.10
+FROM golang:1.9.2 as builder
+RUN go get -u github.com/golang/dep/...
+WORKDIR /go/src/github.com/influxdata/influxdb
+COPY Gopkg.toml Gopkg.lock ./
+RUN dep ensure -vendor-only
+COPY . /go/src/github.com/influxdata/influxdb
+RUN go install ./cmd/...
 
-# 从操作仓科到容器的文件系统路径 `/`的副本
-COPY entrypoint.sh /entrypoint.sh
+FROM debian:stretch
+COPY --from=builder /go/bin/* /usr/bin/
+COPY --from=builder /go/src/github.com/influxdata/influxdb/etc/config.sample.toml /etc/influxdb/influxdb.conf
 
-# Docker 容器启动时执行的代码文件 (`entrypoint.sh`)
+EXPOSE 8086
+VOLUME /var/lib/influxdb
+
+COPY docker/entrypoint.sh /entrypoint.sh
+COPY docker/init-influxdb.sh /init-influxdb.sh
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["influxd"]
